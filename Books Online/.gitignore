@@ -7,3 +7,5 @@ venv/
 # Fichiers temporaires / caches Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
