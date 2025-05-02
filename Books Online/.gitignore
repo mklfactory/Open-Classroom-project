@@ -1,16 +1,20 @@
 # Ignorer les environnements virtuels
+.venv/
 venv/
 
-# Ignorer les fichiers CSV générés partout
+# Ignorer tous les fichiers CSV générés partout
 *.csv
 
-# Ignorer les fichiers images générées partout
+# Ignorer les dossiers d'images générées partout
 images/
-
-
+*/images/
 
 # Fichiers temporaires / caches Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Fichiers système
+.DS_Store
+Thumbs.db
