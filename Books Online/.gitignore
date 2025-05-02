@@ -4,6 +4,11 @@ venv/
 # Ignorer les fichiers CSV générés partout
 *.csv
 
+# Ignorer les fichiers images générées partout
+*.images/
+
+
+
 # Fichiers temporaires / caches Python
 __pycache__/
 *.pyc
