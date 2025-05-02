@@ -5,33 +5,42 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from slugify import slugify  # pip install python-slugify
 
+# URL de base du site Books to Scrape
 BASE_URL = "http://books.toscrape.com/"
 
-# Dossiers locaux (dans le même dossier que ce script)
+# Définir le dossier courant du script (où il se trouve)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Chemins pour enregistrer les fichiers CSV et les images
 CSV_DIR = os.path.join(BASE_DIR, "csv")
 IMAGE_DIR = os.path.join(BASE_DIR, "images")
 
+# Fonction pour obtenir l'objet BeautifulSoup d'une page donnée
 def get_soup(url):
     response = requests.get(url)
     response.raise_for_status()
     return BeautifulSoup(response.text, 'html.parser')
 
+# Fonction pour récupérer toutes les catégories et leurs URL
 def get_categories():
     soup = get_soup(BASE_URL)
     category_links = soup.select(".side_categories ul li ul li a")
     return {link.text.strip(): urljoin(BASE_URL, link["href"]) for link in category_links}
 
+# Fonction pour récupérer les URLs de tous les livres d'une catégorie (gestion de la pagination)
 def get_all_book_urls_from_category(category_url):
     book_urls = []
     while category_url:
         soup = get_soup(category_url)
+        # Extraire tous les liens vers les pages produit des livres
         for h3 in soup.select("h3 a"):
             book_urls.append(urljoin(category_url, h3["href"]))
+        # Passer à la page suivante s’il y a un lien "next"
         next_link = soup.select_one("li.next a")
         category_url = urljoin(category_url, next_link["href"]) if next_link else None
     return book_urls
 
+# Fonction pour télécharger une image et l’enregistrer localement
 def download_image(image_url, save_path):
     response = requests.get(image_url)
     response.raise_for_status()
@@ -39,9 +48,11 @@ def download_image(image_url, save_path):
     with open(save_path, 'wb') as f:
         f.write(response.content)
 
+# Fonction pour extraire les données d’un livre
 def get_book_details(book_url, category_name):
     soup = get_soup(book_url)
 
+    # Extraire les champs demandés
     title = soup.h1.text.strip()
     upc = soup.find("th", string="UPC").find_next("td").text.strip()
     price_incl = soup.find("th", string="Price (incl. tax)").find_next("td").text.strip()
@@ -51,10 +62,12 @@ def get_book_details(book_url, category_name):
     description_text = description.text.strip() if description else ""
     category = soup.select_one(".breadcrumb li:nth-of-type(3) a").text.strip()
     review_rating = soup.select_one(".star-rating")["class"][1]
+
+    # URL de l’image
     image_relative_url = soup.select_one(".item.active img")["src"]
     image_url = urljoin(book_url, image_relative_url)
 
-    # Définir chemin d'enregistrement de l'image dans le dossier de la phase
+    # Construction du chemin d'enregistrement de l'image
     image_folder = os.path.join(IMAGE_DIR, slugify(category_name))
     image_filename = slugify(title) + os.path.splitext(urlparse(image_url).path)[-1]
     image_path = os.path.join(image_folder, image_filename)
@@ -62,6 +75,7 @@ def get_book_details(book_url, category_name):
     # Télécharger l’image
     download_image(image_url, image_path)
 
+    # Retourner toutes les données dans un dictionnaire
     return {
         "product_page_url": book_url,
         "universal_product_code": upc,
@@ -76,10 +90,10 @@ def get_book_details(book_url, category_name):
         "image_path": image_path
     }
 
+# Fonction pour enregistrer les données d’une catégorie dans un fichier CSV
 def save_books_to_csv(books, category_name):
     if not books:
         return
-
     fieldnames = books[0].keys()
     os.makedirs(CSV_DIR, exist_ok=True)
     filename = os.path.join(CSV_DIR, f"{slugify(category_name)}.csv")
@@ -89,6 +103,7 @@ def save_books_to_csv(books, category_name):
         for book in books:
             writer.writerow(book)
 
+# Fonction principale qui parcourt toutes les catégories et lance l’extraction
 def scrape_all_categories():
     categories = get_categories()
     for name, url in categories.items():
@@ -104,5 +119,6 @@ def scrape_all_categories():
         save_books_to_csv(books_data, name)
         print(f"✅ {len(books_data)} livres enregistrés pour la catégorie '{name}'\n")
 
+# Point d'entrée du script
 if __name__ == "__main__":
     scrape_all_categories()
