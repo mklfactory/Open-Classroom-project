@@ -5,7 +5,7 @@ venv/
 *.csv
 
 # Ignorer les fichiers images générées partout
-*.images/
+images/
 
 
 
