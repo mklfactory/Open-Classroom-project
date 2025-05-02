@@ -7,6 +7,11 @@ from slugify import slugify  # pip install python-slugify
 
 BASE_URL = "http://books.toscrape.com/"
 
+# Dossiers locaux (dans le même dossier que ce script)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_DIR = os.path.join(BASE_DIR, "csv")
+IMAGE_DIR = os.path.join(BASE_DIR, "images")
+
 def get_soup(url):
     response = requests.get(url)
     response.raise_for_status()
@@ -24,10 +29,7 @@ def get_all_book_urls_from_category(category_url):
         for h3 in soup.select("h3 a"):
             book_urls.append(urljoin(category_url, h3["href"]))
         next_link = soup.select_one("li.next a")
-        if next_link:
-            category_url = urljoin(category_url, next_link["href"])
-        else:
-            break
+        category_url = urljoin(category_url, next_link["href"]) if next_link else None
     return book_urls
 
 def download_image(image_url, save_path):
@@ -52,12 +54,12 @@ def get_book_details(book_url, category_name):
     image_relative_url = soup.select_one(".item.active img")["src"]
     image_url = urljoin(book_url, image_relative_url)
 
-    # Image filename
-    image_folder = os.path.join("images", slugify(category_name))
+    # Définir chemin d'enregistrement de l'image dans le dossier de la phase
+    image_folder = os.path.join(IMAGE_DIR, slugify(category_name))
     image_filename = slugify(title) + os.path.splitext(urlparse(image_url).path)[-1]
     image_path = os.path.join(image_folder, image_filename)
 
-    # Download image
+    # Télécharger l’image
     download_image(image_url, image_path)
 
     return {
@@ -79,8 +81,8 @@ def save_books_to_csv(books, category_name):
         return
 
     fieldnames = books[0].keys()
-    os.makedirs("csv", exist_ok=True)
-    filename = os.path.join("csv", f"{slugify(category_name)}.csv")
+    os.makedirs(CSV_DIR, exist_ok=True)
+    filename = os.path.join(CSV_DIR, f"{slugify(category_name)}.csv")
     with open(filename, mode="w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -100,7 +102,7 @@ def scrape_all_categories():
             except Exception as e:
                 print(f"❌ Erreur avec {book_url} : {e}")
         save_books_to_csv(books_data, name)
-        print(f"✅ Fichier CSV généré pour la catégorie {name} ({len(books_data)} livres)\n")
+        print(f"✅ {len(books_data)} livres enregistrés pour la catégorie '{name}'\n")
 
 if __name__ == "__main__":
     scrape_all_categories()
