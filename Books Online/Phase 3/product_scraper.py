@@ -1,111 +1,76 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
-import time
-from urllib.parse import urljoin
+import os
 
-BASE_URL = "http://books.toscrape.com/"
+def get_soup(url):
+    response = requests.get(url)
+    response.raise_for_status()
+    return BeautifulSoup(response.content, 'html.parser')
 
 def get_book_details(book_url):
-    response = requests.get(book_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = get_soup(book_url)
 
-    try:
-        title = soup.find('h1').text
-    except: title = ''
-
-    try:
-        upc = soup.find('th', string='UPC').find_next('td').text
-    except: upc = ''
-
-    try:
-        price_incl = soup.find('th', string='Price (incl. tax)').find_next('td').text
-    except: price_incl = ''
-
-    try:
-        price_excl = soup.find('th', string='Price (excl. tax)').find_next('td').text
-    except: price_excl = ''
-
-    try:
-        availability = soup.find('th', string='Availability').find_next('td').text.strip()
-    except: availability = ''
-
-    try:
-        description = soup.find('meta', {'name': 'description'})
-        description = description['content'].strip() if description else ''
-    except: description = ''
-
-    try:
-        category = soup.find('ul', class_='breadcrumb').find_all('li')[2].text.strip()
-    except: category = ''
-
-    try:
-        review = soup.find('p', class_='star-rating')['class'][1]
-    except: review = ''
-
-    try:
-        image_rel_url = soup.find('div', class_='item active').img['src']
-        image_url = urljoin(BASE_URL, image_rel_url)
-    except: image_url = ''
+    title = soup.h1.text.strip()
+    upc = soup.find('th', string='UPC').find_next('td').text.strip()
+    price_including_tax = soup.find('th', string='Price (incl. tax)').find_next('td').text.strip()
+    price_excluding_tax = soup.find('th', string='Price (excl. tax)').find_next('td').text.strip()
+    number_available = soup.find('th', string='Availability').find_next('td').text.strip()
+    description_tag = soup.find('div', id='product_description')
+    product_description = description_tag.find_next('p').text.strip() if description_tag else ""
+    category = soup.find('ul', class_='breadcrumb').find_all('li')[2].text.strip()
+    rating = soup.find('p', class_='star-rating')['class'][1]
+    image_url = 'http://books.toscrape.com/' + soup.find('div', class_='item active').img['src'].replace('../', '')
 
     return {
+        'product_page_url': book_url,
+        'universal_product_code (upc)': upc,
         'title': title,
-        'upc': upc,
-        'price_including_tax': price_incl,
-        'price_excluding_tax': price_excl,
-        'number_available': availability,
-        'product_description': description,
+        'price_including_tax': price_including_tax,
+        'price_excluding_tax': price_excluding_tax,
+        'number_available': number_available,
+        'product_description': product_description,
         'category': category,
-        'review_rating': review,
-        'image_url': image_url,
-        'product_page_url': book_url
+        'review_rating': rating,
+        'image_url': image_url
     }
 
-def get_book_urls(category_url):
+def get_all_book_urls_from_category(category_url):
     book_urls = []
-    while category_url:
-        response = requests.get(category_url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-
+    while True:
+        soup = get_soup(category_url)
         for h3 in soup.find_all('h3'):
-            partial_url = h3.find('a')['href']
-            full_url = urljoin(category_url, partial_url)
+            relative_url = h3.a['href'].replace('../../../', '')
+            full_url = 'http://books.toscrape.com/catalogue/' + relative_url
             book_urls.append(full_url)
 
-        next_li = soup.find('li', class_='next')
-        if next_li:
-            next_url = next_li.find('a')['href']
-            category_url = urljoin(category_url, next_url)
+        next_button = soup.find('li', class_='next')
+        if next_button:
+            next_page = next_button.a['href']
+            category_url = '/'.join(category_url.split('/')[:-1]) + '/' + next_page
         else:
-            category_url = None
-
-        time.sleep(1)  # pour être poli avec le serveur
+            break
 
     return book_urls
 
-def save_books_to_csv(book_urls, output_file):
-    if not book_urls:
-        print("Aucune URL trouvée.")
-        return
-
-    books_data = []
-    for url in book_urls:
-        print(f"Scraping: {url}")
-        data = get_book_details(url)
-        books_data.append(data)
-        time.sleep(1)
-
-    with open(output_file, 'w', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=books_data[0].keys())
+def save_book_details(book_urls):
+    output_path = os.path.join(os.path.dirname(__file__), 'poetry_books_details.csv')
+    with open(output_path, 'w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = [
+            'product_page_url', 'universal_product_code (upc)', 'title',
+            'price_including_tax', 'price_excluding_tax', 'number_available',
+            'product_description', 'category', 'review_rating', 'image_url'
+        ]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(books_data)
+        for url in book_urls:
+            book_data = get_book_details(url)
+            writer.writerow(book_data)
 
-    print(f"{len(books_data)} livres enregistrés dans {output_file}")
+    print(f"Données enregistrées dans {output_path}")
 
-# Exécution
-category_url = "http://books.toscrape.com/catalogue/category/books/poetry_23/index.html"
-
-output_csv = r"C:\Users\mklfa\Documents\GitHub\Open-Classroom-project\Books Online\Phase 3\poetry_books_details.csv"
-book_urls = get_book_urls(category_url)
-save_books_to_csv(book_urls, output_csv)
-print(f"{len(book_urls)} livres trouvés")
+# Point d'entrée
+if __name__ == '__main__':
+    category_url = 'http://books.toscrape.com/catalogue/category/books/poetry_23/index.html'
+    book_urls = get_all_book_urls_from_category(category_url)
+    save_book_details(book_urls)
