@@ -19,7 +19,7 @@ This project automates the **Extraction, Transformation, and Loading (ETL)** of 
 ### 1. Clone the Repository
 
 ```bash
-git clone <https://github.com/mklfactory/Open-Classroom-project/tree/6b57ff10ddb143b637f2c06b1f49ed4bbcaccb56/Books%20Online>
+git clone <https://github.com/mklfactory/Open-Classroom-project.git>
 cd "Books Online"
 ```
 
