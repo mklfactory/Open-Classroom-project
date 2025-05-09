@@ -1,40 +1,45 @@
-# 📚 Books to Scrape - Pipeline ETL
+# 📚 Books to Scrape - ETL Pipeline
 
-Ce projet automatise l'extraction, la transformation et le stockage des données du site [Books to Scrape](http://books.toscrape.com).
+This project automates the **Extraction, Transformation, and Loading (ETL)** of book data from the [Books to Scrape](http://books.toscrape.com) website.
 
-## 📦 Fonctionnalités
+## 📦 Features
 
-- 🔍 Extraction des livres depuis **toutes les catégories**
-- 💾 Enregistrement des données produit dans des **fichiers CSV** par catégorie
-- 🖼️ Téléchargement de l'image de couverture de chaque livre
-- 📁 Stockage organisé dans un dossier `data/` contenant :
-  - Un dossier `csv/` avec les données au format CSV
-  - Un dossier `images/` contenant les couvertures de livres
-- 📦 Création d’un **fichier ZIP (`data_export.zip`)** pour l’envoi des données
+- 🔍 Extracts books from **all available categories**
+- 💾 Saves book details into **CSV files**, one per category
+- 🖼️ Downloads cover images for each book
+- 📁 Organized storage in a `data/` folder containing:
+  - A `csv/` folder with CSV files
+  - An `images/` folder with cover images
+- 📦 Creates a **ZIP archive (`data_export.zip`)** for easy sharing
 
 ---
 
-## ▶️ Instructions d'exécution
+## ▶️ How to Run the Script
 
-### 1. Cloner le repository
+### 1. Clone the Repository
 
 ```bash
-git clone <url_du_repository>
-cd Books\ Online/Phase\ 6
+git clone <repository_url>
+cd "Books Online"
+```
 
+### 2. Create and Activate a Virtual Environment
 
-### 2. Créer et activer un environnement virtuel
-
+```bash
 python -m venv venv
 venv\Scripts\activate  # Windows
 # ou
 source venv/bin/activate  # macOS/Linux
+```
 
+### 3. Install Dependencies
 
-### 3.installer les dépendances
-
+```bash
 pip install -r requirements.txt
+```
 
-### 4.Lancer le script
+### 4. Run the Script
+
+```bash
 python product_scraper.py
-
+```
