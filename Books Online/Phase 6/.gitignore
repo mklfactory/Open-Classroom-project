@@ -1,0 +1,16 @@
+# Environnement virtuel
+venv/
+
+# Données générées (CSV + images)
+*.csv
+images/
+data/
+
+# Archive des données
+data_export.zip
+
+# Fichiers temporaires Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

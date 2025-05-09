@@ -7,7 +7,7 @@ venv/
 
 # Ignorer les dossiers d'images générées partout
 images/
-*/images/
+**/images/
 
 # Fichiers temporaires / caches Python
 __pycache__/
