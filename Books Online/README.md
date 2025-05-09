@@ -22,24 +22,19 @@ Ce projet automatise l'extraction, la transformation et le stockage des données
 git clone <url_du_repository>
 cd Books\ Online/Phase\ 6
 
-### 1. Cloner le repository
 
-```bash
-python -m venv venv
-venv\Scripts\activate  # Windows
-# ou
-source venv/bin/activate  # macOS/Linux
-
-
+### 2. Créer et activer un environnement virtuel
 
 python -m venv venv
 venv\Scripts\activate  # Windows
 # ou
 source venv/bin/activate  # macOS/Linux
 
+
+### 3.installer les dépendances
 
 pip install -r requirements.txt
 
-
+### 4.Lancer le script
 python product_scraper.py
 
