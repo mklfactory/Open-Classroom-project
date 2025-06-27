@@ -1,8 +1,8 @@
 import json
-import os
 from models.tournament import Tournament
 from models.player import Player
 from views.view import View
+
 
 class TournamentController:
     def __init__(self):
@@ -63,3 +63,4 @@ class TournamentController:
                 return [Tournament.from_dict(d) for d in json.load(f)]
         except FileNotFoundError:
             return []
+        
