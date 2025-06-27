@@ -1,30 +1,29 @@
-import datetime
-from models.match import Match
+
 
 class Round:
-    def __init__(self, name, matches=None):
+    def __init__(self, name):
         self.name = name
-        self.matches = matches or []
-        self.start_time = str(datetime.datetime.now())
+        self.matches = []
+        self.start_time = None
         self.end_time = None
 
-    def end_round(self):
-        self.end_time = str(datetime.datetime.now())
+    def add_match(self, match):
+        self.matches.append(match)
 
     def to_dict(self):
-        return {
+        r = {
             "name": self.name,
+            "matches": [m.to_dict() for m in self.matches],
             "start_time": self.start_time,
             "end_time": self.end_time,
-            "matches": [m.to_dict() for m in self.matches]
         }
+        return r
 
     @staticmethod
     def from_dict(data):
-        r = Round(
-            data["name"],
-            [Match.from_dict(m) for m in data["matches"]]
-        )
-        r.start_time = data.get("start_time")
-        r.end_time = data.get("end_time")
-        return r
+        from models.match import Match
+        round_obj = Round(data["name"])
+        round_obj.matches = [Match.from_dict(m) for m in data.get("matches", [])]
+        round_obj.start_time = data.get("start_time")
+        round_obj.end_time = data.get("end_time")
+        return round_obj
