@@ -2,11 +2,14 @@ from models.player import Player
 from models.round import Round
 
 class Tournament:
-    def __init__(self, name, place, date, description, players=None, rounds=None):
+    def __init__(self, name, place, start_date, end_date, description, players=None, rounds=None, number_of_rounds=4):
         self.name = name
         self.place = place
-        self.date = date
+        self.start_date = start_date
+        self.end_date = end_date
         self.description = description
+        self.number_of_rounds = number_of_rounds
+        self.current_round = 0
         self.players = players or []
         self.rounds = rounds or []
 
@@ -14,10 +17,13 @@ class Tournament:
         return {
             "name": self.name,
             "place": self.place,
-            "date": self.date,
+            "start_date": self.start_date,
+            "end_date": self.end_date,
             "description": self.description,
+            "number_of_rounds": self.number_of_rounds,
+            "current_round": self.current_round,
             "players": [p.to_dict() for p in self.players],
-            "rounds": [r.to_dict() for r in self.rounds],
+            "rounds": [r.to_dict() for r in self.rounds]
         }
 
     @staticmethod
@@ -25,39 +31,13 @@ class Tournament:
         return Tournament(
             data["name"],
             data["place"],
-            data["date"],
+            data["start_date"],
+            data["end_date"],
             data["description"],
             [Player.from_dict(p) for p in data["players"]],
-            [Round.from_dict(r) for r in data.get("rounds", [])]
+            [Round.from_dict(r) for r in data.get("rounds", [])],
+            data.get("number_of_rounds", 4)
         )
 
     def __str__(self):
-        return f"{self.name} - {self.place} - {self.date}"
-
-# --- views/view.py ---
-class View:
-    def main_menu(self):
-        print("\n--- Menu Principal ---")
-        print("1. Créer un tournoi")
-        print("2. Voir les tournois")
-        print("3. Quitter")
-        return input("Votre choix : ")
-
-    def get_tournament_info(self):
-        print("\n--- Création d'un tournoi ---")
-        name = input("Nom du tournoi : ")
-        place = input("Lieu : ")
-        date = input("Date : ")
-        description = input("Description : ")
-        return name, place, date, description
-
-    def get_player_info(self, i):
-        print(f"\n--- Joueur {i} ---")
-        last = input("Nom : ")
-        first = input("Prénom : ")
-        birth = input("Date de naissance : ")
-        rank = input("Classement : ")
-        return last, first, birth, rank
-
-    def display(self, msg):
-        print("\n" + msg)
+        return f"{self.name} - {self.place} ({self.start_date} au {self.end_date})"
