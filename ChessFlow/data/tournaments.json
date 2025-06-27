@@ -1,0 +1,13 @@
+[
+    {
+        "name": "rivedoux",
+        "place": "rivedoux",
+        "start_date": "27/06/2025",
+        "end_date": "28/06/2025",
+        "description": "tournoi amateur Rivedoux",
+        "number_of_rounds": 4,
+        "current_round": 0,
+        "players": [],
+        "rounds": []
+    }
+]
