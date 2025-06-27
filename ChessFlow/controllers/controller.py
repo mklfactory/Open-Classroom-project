@@ -63,4 +63,3 @@ class TournamentController:
                 return [Tournament.from_dict(d) for d in json.load(f)]
         except FileNotFoundError:
             return []
-        
